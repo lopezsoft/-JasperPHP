@@ -1,5 +1,5 @@
 <?php
-namespace JasperPHP;
+namespace Lopezsoft\JasperPHP\JasperPHP;
 
 class JasperPHP
 {
@@ -94,9 +94,9 @@ class JasperPHP
 
             $command .= sprintf(' -r %s', $this->resource_directory);
 
+            count($parameters) > 0 ? $command .= ' -P' : '';
             foreach ($parameters as $key => $value) {
-                $value      = is_string($value) ? sprintf('"%s"', $value) : $value;
-                $command .= sprintf(' -P %s=%s', $key, $value);
+                is_string($value) ? $command .= " {$key}=\"$value\"" : $command .= " $key=$value";
             }
 
             if (!empty($db_connection)) {

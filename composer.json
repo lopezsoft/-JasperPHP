@@ -16,10 +16,6 @@
     },
     "authors": [
         {
-            "name": "Hélder Duarte",
-            "email": "cossou@gmail.com"
-        },
-        {
             "name": "Lewis Lopez",
             "email": "lopezsoft.com@gmail.com"
         }
@@ -31,8 +27,8 @@
         "phpunit/phpunit": "^8.5.33"
     },
     "autoload": {
-        "psr-0": {
-            "JasperPHP": "src/"
+        "psr-4": {
+            "Lopezsoft\\JasperPHP\\": "src/"
         }
     },
     "autoload-dev": {
