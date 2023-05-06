@@ -3,12 +3,12 @@ namespace JasperPHP;
 
 class JasperPHP
 {
-    protected $executable = "/../JasperStarter/bin/jasperstarter";
+    protected string $executable = "/../JasperStarter/bin/jasperstarter";
     protected $the_command;
     protected $redirect_output;
     protected $background;
     protected $windows = false;
-    protected $formats = array('pdf', 'rtf', 'xls', 'xlsx', 'docx', 'odt', 'ods', 'pptx', 'csv', 'html', 'xhtml', 'xml', 'jrprint');
+    protected $formats = ['pdf', 'rtf', 'xls', 'xlsx', 'docx', 'odt', 'ods', 'pptx', 'csv', 'html', 'xhtml', 'xml', 'jrprint'];
     protected $resource_directory; // Path to report resource dir or jar file
 
     /**
@@ -73,62 +73,53 @@ class JasperPHP
                             $db_connection = [], $background = true, $redirect_output = true): JasperPHP
     {
         try {
-            if (is_null($input_file) || empty($input_file)) {
-                throw new \Exception("No input file", 1);
+            if (empty($input_file)) {
+                throw new \Exception('No input file', 1);
             }
 
-            $format = is_array($format) ? $format : [$format];
-
-            $invalid_formats = array_diff($format, $this->formats);
-            if (!empty($invalid_formats)) {
-                throw new \Exception("Invalid format: " . implode(", ", $invalid_formats), 1);
-            }
-
-            $command = escapeshellcmd(__DIR__ . $this->executable) . " process $input_file";
-
-            if ($output_file !== false) {
-                $command .= " -o $output_file";
-            }
-
-            $command .= " -f " . implode(" ", $format);
-
-            $command .= " -r $this->resource_directory";
-
-            if (!empty($parameters)) {
-                $command .= " -P";
-                foreach ($parameters as $key => $value) {
-                    $command .= is_string($value) ? " {$key}='{$value}'" : " $key=$value";
+            foreach ($format as $key) {
+                if (!in_array($key, $this->formats)) {
+                    throw new \Exception('Invalid format!', 1);
                 }
             }
 
-            $flag_bits = 0;
-            if ($redirect_output) {
-                $flag_bits |= 1;
+            $command = sprintf('%s process %s', __DIR__ . $this->executable, $input_file);
+
+            if ($output_file !== false) {
+                $command .= sprintf(' -o %s', $output_file);
             }
-            if ($background) {
-                $flag_bits |= 2;
+
+            $format_string = implode(' ', $format);
+            $command .= sprintf(' -f %s', $format_string);
+
+            $command .= sprintf(' -r %s', $this->resource_directory);
+
+            foreach ($parameters as $key => $value) {
+                $value      = is_string($value) ? sprintf('"%s"', $value) : $value;
+                $command .= sprintf(' -P %s=%s', $key, $value);
             }
-            $command .= " -d $flag_bits";
 
             if (!empty($db_connection)) {
-                $command .= " -t $db_connection[driver]";
+                $db_command = sprintf(' -t %s', $db_connection['driver']);
 
-                $command .= " -u " . ($db_connection['username'] ?? '');
-                $command .= " -p " . ($db_connection['password'] ?? '');
-                $command .= " -H " . ($db_connection['host'] ?? '');
-                $command .= " -n " . ($db_connection['database'] ?? '');
-                $command .= " --db-port " . ($db_connection['port'] ?? '');
-                $command .= " --db-driver " . ($db_connection['jdbc_driver'] ?? '');
-                $command .= " --db-url " . ($db_connection['jdbc_url'] ?? '');
-                $command .= ' --jdbc-dir ' . ($db_connection['jdbc_dir'] ?? '');
-                $command .= ' --db-sid ' . ($db_connection['db_sid'] ?? '');
-                $command .= ' --json-query ' . ($db_connection['json_query'] ?? '');
-                $command .= ' --data-file ' . ($db_connection['data_file'] ?? '');
+                $db_command .= !empty($db_connection['username']) ? sprintf(' -u %s', $db_connection['username']) : '';
+                $db_command .= !empty($db_connection['password']) ? sprintf(' -p %s', $db_connection['password']) : '';
+                $db_command .= !empty($db_connection['host']) ? sprintf(' -H %s', $db_connection['host']) : '';
+                $db_command .= !empty($db_connection['database']) ? sprintf(' -n %s', $db_connection['database']) : '';
+                $db_command .= !empty($db_connection['port']) ? sprintf(' --db-port %s', $db_connection['port']) : '';
+                $db_command .= !empty($db_connection['jdbc_driver']) ? sprintf(' --db-driver %s', $db_connection['jdbc_driver']) : '';
+                $db_command .= !empty($db_connection['jdbc_url']) ? sprintf(' --db-url %s', $db_connection['jdbc_url']) : '';
+                $db_command .= !empty($db_connection['jdbc_dir']) ? sprintf(' --jdbc-dir %s', $db_connection['jdbc_dir']) : '';
+                $db_command .= !empty($db_connection['db_sid']) ? sprintf(' --db-sid %s', $db_connection['db_sid']) : '';
+                $db_command .= !empty($db_connection['json_query']) ? sprintf(' --json-query %s', $db_connection['json_query']) : '';
+                $db_command .= !empty($db_connection['data_file']) ? sprintf(' --data-file %s', $db_connection['data_file']) : '';
+
+                $command .= $db_command;
             }
 
-            $this->redirect_output = $redirect_output;
-            $this->background = $background;
-            $this->the_command = $command;
+            $this->redirect_output  = $redirect_output;
+            $this->background       = $background;
+            $this->the_command      = $command;
 
             return $this;
         }catch (\Exception $e){
@@ -169,27 +160,27 @@ class JasperPHP
      */
     public function execute($run_as_user = false): array
     {
-        try {
-            $command = $this->the_command;
-            if ($this->redirect_output && !$this->windows) {
-                $command .= " 2>&1";
+        if (!$this->windows) {
+            if ($this->redirect_output) {
+                $this->the_command .= " 2>&1";
             }
-            if ($this->background && !$this->windows) {
-                $command .= " &";
+
+            if ($this->background) {
+                $this->the_command .= " &";
             }
-            if ($run_as_user && !$this->windows) {
-                $command = sprintf("su -c \"%s\" %s", $command, $run_as_user);
+
+            if ($run_as_user !== false && strlen($run_as_user) > 0) {
+                $this->the_command = "su -c \"{$this->the_command}\" {$run_as_user}";
             }
-            $output = [];
-            $return_var = 0;
-            exec($command, $output, $return_var);
-            if ($return_var != 0) {
-                $error_msg = $output[0] ?? "Your report has an error and couldn't be processed! Try to output the command using the function `output();` and run it manually in the console.";
-                throw new \Exception($error_msg, 1);
-            }
-            return $output;
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage(), $e->getCode());
         }
+        $output = [];
+        $return_var = 0;
+        exec($this->the_command, $output, $return_var);
+
+        if ($return_var != 0) {
+            $error_message = $output[0] ?? "Your report has an error and couldn't be processed! Try to output the command using the function `output();` and run it manually in the console.";
+            throw new \Exception($error_message, 1);
+        }
+        return $output;
     }
 }

@@ -3,3 +3,4 @@ src/.DS_Store
 phpunit.phar
 /vendor
 /.idea
+/testlocal.php
