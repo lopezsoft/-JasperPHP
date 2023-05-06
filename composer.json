@@ -1,0 +1,45 @@
+{
+    "name": "lopezsoft/jasperphp",
+    "description": "Create Reports in PHP with JasperReports",
+    "license": "MIT",
+    "keywords": [
+        "reports",
+        "jasper",
+        "jasperreports",
+        "reports",
+        "pdf",
+        "java"
+      ],
+    "support": {
+        "issues": "https://github.com/lopezsoft/phpjasper/issues",
+        "source": "https://github.com/lopezsoft/phpjasper"
+    },
+    "authors": [
+        {
+            "name": "Hélder Duarte",
+            "email": "cossou@gmail.com"
+        },
+        {
+            "name": "Lewis Lopez",
+            "email": "lopezsoft.com@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">= 7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lopezsoft\\JasperPHP\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lopezsoft\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
