@@ -31,8 +31,8 @@
         "phpunit/phpunit": "^8.1"
     },
     "autoload": {
-        "psr-4": {
-            "Lopezsoft\\JasperPHP\\": "src/"
+        "psr-0": {
+            "JasperPHP": "src/"
         }
     },
     "autoload-dev": {
