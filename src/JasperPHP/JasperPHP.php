@@ -11,6 +11,9 @@ class JasperPHP
     protected $formats = array('pdf', 'rtf', 'xls', 'xlsx', 'docx', 'odt', 'ods', 'pptx', 'csv', 'html', 'xhtml', 'xml', 'jrprint');
     protected $resource_directory; // Path to report resource dir or jar file
 
+    /**
+     * @throws \Exception
+     */
     function __construct($resource_dir = false)
     {
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
@@ -35,11 +38,14 @@ class JasperPHP
         return call_user_func_array(array(new $model, $method), $parameters);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function compile($input_file, $output_file = false, $background = true, $redirect_output = true): JasperPHP
     {
         try {
             if(is_null($input_file) || empty($input_file))
-                throw new Exception("No input file", 1);
+                throw new \Exception("No input file", 1);
 
             $command = __DIR__ . $this->executable;
 
@@ -55,24 +61,27 @@ class JasperPHP
             $this->the_command      = escapeshellcmd($command);
 
             return $this;
-        }catch (Exception $e){
-            throw new Exception($e->getMessage(), $e->getCode());
+        }catch (\Exception $e){
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     public function process($input_file, $output_file = false, $format = ["pdf"], $parameters = [],
                             $db_connection = [], $background = true, $redirect_output = true): JasperPHP
     {
         try {
             if (is_null($input_file) || empty($input_file)) {
-                throw new Exception("No input file", 1);
+                throw new \Exception("No input file", 1);
             }
 
             $format = is_array($format) ? $format : [$format];
 
             $invalid_formats = array_diff($format, $this->formats);
             if (!empty($invalid_formats)) {
-                throw new Exception("Invalid format: " . implode(", ", $invalid_formats), 1);
+                throw new \Exception("Invalid format: " . implode(", ", $invalid_formats), 1);
             }
 
             $command = escapeshellcmd(__DIR__ . $this->executable) . " process $input_file";
@@ -122,16 +131,19 @@ class JasperPHP
             $this->the_command = $command;
 
             return $this;
-        }catch (Exception $e){
-            throw new Exception($e->getMessage(), $e->getCode());
+        }catch (\Exception $e){
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     public function list_parameters($input_file): JasperPHP
     {
         try {
             if(is_null($input_file) || empty($input_file))
-                throw new Exception("No input file", 1);
+                throw new \Exception("No input file", 1);
 
             $command = __DIR__ . $this->executable;
 
@@ -142,8 +154,8 @@ class JasperPHP
             $this->the_command = escapeshellcmd($command);
 
             return $this;
-        }catch (Exception $e){
-            throw new Exception($e->getMessage(), $e->getCode());
+        }catch (\Exception $e){
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
     }
 
@@ -152,6 +164,9 @@ class JasperPHP
         return escapeshellcmd($this->the_command);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function execute($run_as_user = false): array
     {
         try {
@@ -170,11 +185,11 @@ class JasperPHP
             exec($command, $output, $return_var);
             if ($return_var != 0) {
                 $error_msg = $output[0] ?? "Your report has an error and couldn't be processed! Try to output the command using the function `output();` and run it manually in the console.";
-                throw new Exception($error_msg, 1);
+                throw new \Exception($error_msg, 1);
             }
             return $output;
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode());
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
     }
 }
