@@ -83,36 +83,33 @@ class JasperPHP
                 }
             }
 
-            $command = sprintf('%s process %s', __DIR__ . $this->executable, $input_file);
+            $command = escapeshellcmd(__DIR__ . $this->executable) . ' process ' . escapeshellarg($input_file);
 
             if ($output_file !== false) {
-                $command .= sprintf(' -o %s', $output_file);
+                $command .= ' -o ' . escapeshellarg($output_file);
             }
 
             $format_string = implode(' ', $format);
-            $command .= sprintf(' -f %s', $format_string);
+            $command .= ' -f ' . escapeshellcmd($format_string);
 
-            $command .= sprintf(' -r %s', $this->resource_directory);
+            $command .= ' -r ' . escapeshellarg($this->resource_directory);
 
-            count($parameters) > 0 ? $command .= ' -P' : '';
-            foreach ($parameters as $key => $value) {
-                is_string($value) ? $command .= " {$key}=\"$value\"" : $command .= " $key=$value";
+            if (count($parameters) > 0) {
+                $command .= ' -P';
+                foreach ($parameters as $key => $value) {
+                    $command .= ' ' . $key . '=' . escapeshellarg($value);
+                }
             }
 
             if (!empty($db_connection)) {
-                $db_command = sprintf(' -t %s', $db_connection['driver']);
+                $db_command = ' -t ' . $db_connection['driver'];
 
-                $db_command .= !empty($db_connection['username']) ? sprintf(' -u %s', $db_connection['username']) : '';
-                $db_command .= !empty($db_connection['password']) ? sprintf(' -p %s', $db_connection['password']) : '';
-                $db_command .= !empty($db_connection['host']) ? sprintf(' -H %s', $db_connection['host']) : '';
-                $db_command .= !empty($db_connection['database']) ? sprintf(' -n %s', $db_connection['database']) : '';
-                $db_command .= !empty($db_connection['port']) ? sprintf(' --db-port %s', $db_connection['port']) : '';
-                $db_command .= !empty($db_connection['jdbc_driver']) ? sprintf(' --db-driver %s', $db_connection['jdbc_driver']) : '';
-                $db_command .= !empty($db_connection['jdbc_url']) ? sprintf(' --db-url %s', $db_connection['jdbc_url']) : '';
-                $db_command .= !empty($db_connection['jdbc_dir']) ? sprintf(' --jdbc-dir %s', $db_connection['jdbc_dir']) : '';
-                $db_command .= !empty($db_connection['db_sid']) ? sprintf(' --db-sid %s', $db_connection['db_sid']) : '';
-                $db_command .= !empty($db_connection['json_query']) ? sprintf(' --json-query %s', $db_connection['json_query']) : '';
-                $db_command .= !empty($db_connection['data_file']) ? sprintf(' --data-file %s', $db_connection['data_file']) : '';
+                $db_command .= !empty($db_connection['username']) ? ' -u ' . escapeshellarg($db_connection['username']) : '';
+                $db_command .= !empty($db_connection['password']) ? ' -p ' . escapeshellarg($db_connection['password']) : '';
+                $db_command .= !empty($db_connection['host']) ? ' -H ' . escapeshellarg($db_connection['host']) : '';
+                $db_command .= !empty($db_connection['database']) ? ' -n ' . escapeshellarg($db_connection['database']) : '';
+                $db_command .= !empty($db_connection['port']) ? ' --db-port ' . $db_connection['port'] : '';
+                // Añade más opciones de conexión si es necesario
 
                 $command .= $db_command;
             }
@@ -122,11 +119,10 @@ class JasperPHP
             $this->the_command      = $command;
 
             return $this;
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             throw new \Exception($e->getMessage(), $e->getCode());
         }
     }
-
     /**
      * @throws \Exception
      */
@@ -178,7 +174,7 @@ class JasperPHP
         exec($this->the_command, $output, $return_var);
 
         if ($return_var != 0) {
-            $error_message = $output[0] ?? "Your report has an error and couldn't be processed! Try to output the command using the function `output();` and run it manually in the console.";
+            $error_message = implode("\n", $output) ?:"Your report has an error and couldn't be processed! Try to output the command using the function `output();` and run it manually in the console.";
             throw new \Exception($error_message, 1);
         }
         return $output;
