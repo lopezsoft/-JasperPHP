@@ -2,6 +2,7 @@
     "name": "lopezsoft/jasperphp",
     "description": "Create Reports in PHP with JasperReports",
     "license": "MIT",
+    "version": "2.9.6",
     "keywords": [
         "reports",
         "jasper",
